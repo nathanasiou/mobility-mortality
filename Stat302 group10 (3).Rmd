@@ -1,0 +1,429 @@
+---
+title: "The Association Between Mobility Change and Mortality Rate in the Midst of COVID-19 Pandemic"
+author: "Lexi Luo, Nicole Athanasiou, Ziyang Hang"
+date: "5/3/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+source("gprob.R")
+library(broom)
+library(reshape2)
+```
+
+```{r}
+set.seed(0)
+data = read.csv("Group10.csv", header = T)
+pop = data %>% filter(Population > 250000)
+sample = sample_n(pop, 100)
+sample =  sample %>% mutate(motality = sample$Death / sample$Positive)
+
+#group by region
+Northeast = sample %>% filter(Region == "Northeast")
+Midwest = sample %>% filter(Region == "Midwest")
+South  = sample %>% filter(Region == "South") %>% drop_na()
+West  = sample %>% filter(Region == "West")
+```
+
+
+<hr/>
+
+# I.  Introduction
+## i. Background
+The disease COVID-19, commonly known as “coronavirus,” emerged in December 2019 and has greatly altered how society is functioning. It causes respiratory illness with symptoms of cough, fever, and difficulty breathing. Moreover, it is spread from person to person. There is no vaccine yet. Some prevention techniques include frequent handwashing, coughing into the elbow, and staying home or wearing a cloth mask when sick. 
+
+The coronavirus pandemic has resulted in major shifts in how the United States is operating, including closures, prohibited activities, and a smaller workforce. The majority of states have issued Stay-At-Home orders, which classify only certain types of activity and travel as “essential” and prohibit nonessential activities and travel. This research project will explore how people’s lives have been affected by the current pandemic. 
+
+## ii. Broader impact and greater signiﬁcance
+
+The target audience of this research is other students who are interested in understanding the impact of coronavirus on mobility and positive cases. The target market is the government as they determine the orders put in place to slow the spread of the virus. The research topic is appealing to the target audience because COVID-19 emerged recently, so little research has been done on how mobility is changing and whether a decrease in mobility is effective at preventing the spread. This research can be used to determine how the pandemic is altering the activities of society and whether there is an impact on mortality rates. Furthermore, this is not an event from the past; the data is changing everyday. As the pandemic is not foreseen to end anytime soon, it is important to analyze this topic now so that the government can better estimate how society will react.
+
+## iii. Statement of purpose
+
+In this research, the mobility and mortality rates of Americans have been measured. Mobility data consists of Google community mobility reports, which are generated from cell phone location data. Mortality rates are measured by taking CDC data on number of deaths and positive cases and dividing deaths by positive cases. These rates were divided further: the difference in mobility rates to areas designated as “nonessential travel” and “essential travel”  the difference in mean mortality rates in geographic regions (Midwest, Northeast, South, West), whether there is independence between regions and mobility rate, and the association between mortality rate and total mobility change. Analyzing these specific topics will determine how COVID-19 has affected travel and whether there is an association between mobility change and mortality rates.
+
+## iv. Specific aims
+
+Other studies have been done on whether public policies effectively increase community actions to slow spread. One example of community mitigation is social distancing. A study conducted by the CDC found that implementing policies when case counts are high can decrease the spread of COVID-19. However, there are limitations to the CDC study; data from February 26-April 1, 2020 were taken from four urban metropolitan areas. 
+
+This study on the community impact of coronavirus differs from other studies, such as the CDC’s, because the data were collected more recently. Additionally, the data analyzed were from counties with populations greater than 250,000 in the United States. This provides a more representative sample of the population of communities across the United States. 
+
+One challenge of this study is that data on COVID-19 are constantly changing. In an attempt to prevent mismatched data, all data were collected within a span of three days. As a result, the study is representative of the dates data were collected. 
+
+This research project will analyze which factors are correlated to mobility change or mortality rates. To be specific, one question that will be asked is: How does COVID-19 affect the mobility of Grocery & Pharmacies and Retail & recreations of people from more populated areas? A paired t test for difference of means will be used to test this question. The next question to ask is: Is there any difference in the mean motality rate of COVID-19 across the four regions of the United States? A ANOVA test for difference in means for mean positive cases in Midwest, Northeast, South, and West regions will be used. The third question is: Are the regions and change in mobility rate independent of each other or not? A Chi-Square test for independence will be used to test the two variables. The last question to ask is: Is there association between mortality rate and mobility change? This question will be answered by regression analysis. 
+
+These questions will help the audience understand whether there is a difference in people going to nonessential and essential places, how regions differ in mobility change and mortality rate, and whether there is an association between morality rate and mobility change. By beginning with the mobility change for essential and nonessential travel, the impact of coronavirus on society is established. Then, by breaking down mobility change and mortality rate into regions, differences in strictness of orders between regions may be highlighted. Finally, the study will determine whether there is a correlation between mobility change and mortality rate. 
+
+
+<hr/>
+
+# II. Results
+
+## i. Population of interest
+
+The population of interest consists of residents from all counties with populations higher than 250,000 in the United States. The population of interest is chosen because the majority of United States’ states are under Stay-At-Home orders of varying levels of strictness during the pandemic. Because not all states are under the same order, positive cases and the mobility and mortality rates can be compared. Furthermore, the population can easily be divided by region and level of population.  
+
+## ii. Type of study
+
+The study is an observation study. A large amount of data is required to study our topic, so rather than conducting a survey, data was taken from existing data online and then a simple random sample was generated. Moreover, conducting a survey could result in bias. 
+
+## iii. Data description & data collection
+
+The data set for this research is a collection of data surveyed from several websites. Our data set consists of county name, region, mobility data, population, and "stay at home order or not". The county name, region, and population data is form Census Bureau. Mobility data is from community mobility reports by Google. Cases of positive and death caused by COVID-19 are from CDC official website, JHU COVID-19 tracker, and 1point3acres COVID-19 tracker. Lastly, "stay at home order or not" data is from the New York Times.
+
+## iv. Sampling scheme
+
+From a dataset of all counties in the United States, counties with populations greater than 250,000 were selected as the population of this study. Then, a simple random sample of size 100 was drawn, which resulted in the counties included in the sample. This method was chosen to ensure an unbiased sample with independent groups.
+
+There are some confounding variables, such as healthcare availability and quality of medical resources, that may affect the results of some research questions. However, the randomness of the data sample can counteract the effects of the confounding variables. 
+
+## v. Table of variables
+
+|**Name of Variable** | **Type of Variable** | **Explanatory/Response** | **Level of Variable (if categorical), Range (if numerical) **|  
+| :----------------- | :-----------------------: | :-----------------------: | :--------------------: |
+| State| Categorical|Explanatory|Name of 50 states|
+| County| Categorical|Explanatory|Name of each county|
+| Region | Categorical|Explanatory|Northeast, Midwest, South, West|
+| RetailandRecreation|Numerical|Explanatory & Response|-75 to -35|
+| GroceryandPharmacy|Numerical|Explanatory & Response| -42 to -10|
+| Parks|Numerical|Explanatory & Response|-78 to 176|
+| TransitStations|Numerical|Explanatory & Response|-80 to 13|
+| Workplaces|Numerical|Explanatory & Response|-54 to -25|
+| Residential|Numerical|Explanatory & Response|-1 to 21|
+| Positive|Numerical|Response|0 to 15616|
+| Death|Numerical|Response| 0 to 936|
+| Population|Numerical|Explanatory|250873 to 10039107|
+| StayAtHomeOrder| Categorical|Explanatory|Yes, No|
+
+The mobility data incudes mobility changes of Retail and Recreation, Grocery and Pharmacy, Parks, Transit Stations, Workplaces, and Residential. The changes are measured in percentage, and unit for changes is pencent.
+
+## vi. Statistical tests
+
+### Paired T test:
+The first question is: How does COVID-19 affect the mobility of Retail & Recreation compared the mobility of Grocery & Pharmacies of people from more populated county? The unit for mobility is percentage. The hypothesis is the mobility of Retail & Recreation and the mobility of Grocery & Pharmacies are the same. The parameter of interests is $\mu_{diff}$ , the mean difference of mobility of Retail & Recreation and the mobility of Grocery & Pharmacies. The null and alternative hypotheses are as follows:
+$$
+\begin{aligned}
+  H_0: \mu_{diff}= 0 \\
+  H_a: \mu_{diff} \ne 0 \\
+\end{aligned}
+$$
+A paired t test between two means will be used to examine the research question. The first step is to filter the data to get one group respresenting the mobility of Retail & Recreation, and the other group representing the mobility of Grocery & Pharmacies. Then the calculation of the difference of mobility of two groups will be computed. Then, standard error and t test statitics is calculated to determine the p-value. If the p-value is less than the chosen significance level (0.05), we reject the null hypothesis.
+
+#### Condition check for paired t-test:
+The assumptions for t-test are independence and normal distribution. Since mobility of Retail & Recreation and Grocery & Pharmacies are often linked, and there is a lack of independence between the groups, we choose to do a paired-t test. We assume independence within group is achieved because the samples from different counties. We will perform one density plot to check the if normal distribution is satisfied for each group. If both groups are approximately normal, then the difference should also be approximately noraml. Furthermore, since we have a large sample size (n=100), normal distribution should not be a concern according to Central Limit Theroem.
+
+### ANOVA test
+The second question is: Is there any difference in the mean motality rate of COVID-19 across the four regions of the United States? The hypothesis is the difference in the mean motality rate of COVID-19 across regions is 0. The parameter of interests is the mean morality rate of the four regions (Midwest, Northeast, South, West), and the null and alternative hypothese are as follows:
+$$
+\begin{aligned}
+  H_0: \mu_1=\mu_2=\mu_3=\mu_4  \\
+  H_a: \mu_1 \ne \mu_2 \ne \mu_3 \ne \mu_4 \\
+\end{aligned}
+$$
+A ANOVA test will be used to examine the research question, and the test statistic and p-value will be generate by lm() and anova() functions. If the p-value is less than the chosen significance level (0.05), we reject the null hypothesis.
+
+#### Condition check for ANOVA test:
+The assumptions for ANOVA test are independence, noramlity, and constant variance. Independence is statisfied since the sample is less than 10% of the population, and we assume the subjects in different groups are independent. Normality and constant variance will be checked by boxplots and density plot. Constant variable will be chacked by calculating standard deviation within each groups.
+
+### X2 independence test
+The third question is: Are the regions and change in mobility rate independent of each other or not? The null and alternative hypothese are as follows:
+$H_0$: regions and change in mobility rate are independent of each other
+$H_a$: regions and change in mobility rate are not independent of each other
+
+A X2 independence test will be used to examine the research question. The expected counts will be calculated first, and the X2 statistic will be determined using the observed and expected counts. Then, the p-value will be determined by the X2 statistic and degree of freedom. If the p-value is less than the chosen significance level (0.05), we reject the null hypothesis.
+
+#### Condition check for X2 independence test：
+The assumptions for X2 independence test is independence, large sample size, and degree of freedom greater than 2. independence is satisfied since each case is independent of all the other cases in the table; sample size and degree of freedom will be check using the expected table.
+
+### Regression Analysis
+The fourth question is: Is there association between motality rate and total mobility change? The null hypothesis is there is no assication between motality rate and total mobility change, and the alternative hypothesis is there is association between motality rate and total mobility change. The paramter of interest is $\beta_1$, the slope of the least square regression line of motality rate and total mobility change.The null and alternative hypotheses are as follows:
+$$
+\begin{aligned}
+  H_0: \beta_1 = 0 \\
+  H_a: \beta_1 \ne 0 \\
+\end{aligned}
+$$
+A Simple Linear Regression Analysis will be used to examine the research question. The first step is to calculate the total mobility change using all molibity parameters. Then the use the lm() and summary() function to calculate the test statistic and p-value. If the p-value is less than the chosen significance level (0.05), we reject the null hypothesis.
+
+#### Assumption check for Regression Analysis
+
+The assumptions for Simple Linear Regression Analysis is linearity, independence, normaility, and equal variance.
+We assume the each observation is independent of the others so independence is checked. Then we use the plot(regression line) function to generate plots to check for the model assumption. The linearity assumption can be checked by the Residuals vs Fitted plot, and  normality assumption can be checked using the Normal Q-Q plot. Lastly, the constant variance assumption can be checked by the Scale-Location plot 
+
+<hr/>
+
+## vii. Computations and Interpretations
+## Paired T-test
+For this test, the parameter is the the mean dfference of mobility of Retail & Recreation and the mobility of Grocery & Pharmacies, which is $\mu_{diff}$. The research question is: How does COVID-19 affect the mobility of Retail & Recreation compared the mobility of Grocery & Pharmacies of people from more populated county? The hypothesis is that the mobility of Retail & Recreation is the same as the mobility of Grocery & Pharmacies.
+
+### Hypothesis
+
+$$
+\begin{aligned}
+  H_0: \mu_{diff} = 0 \\
+  H_a: \mu_{diff} \ne 0 \\
+\end{aligned}
+$$
+
+### Check for Assumption
+```{r}
+dataf <- data.frame(RetailandRecreation = sample$Retail...recreation, GroceryandPharmacy = sample$Grocery...pharmacy)
+dataf.m <- melt(dataf)
+ ggplot(dataf.m, aes(x = value, color = variable, fill = variable)) +
+   geom_density(alpha = 0.5) +
+   geom_hline(yintercept=0)  +
+  xlab("Percent mobility change")
+```
+
+The underlying distrubtions are approximately normal, and the large sample size statisfy the assumption of t-test.
+
+### Calculate the Test Statistic
+```{r}
+diff1 = sample$Retail...recreation - sample$Grocery...pharmacy
+n1 = 100
+mean(diff1)
+sd(diff1)
+t.test(diff1)
+tstat1 = -47.826
+```
+
+$$
+\begin{aligned}
+  t&=\frac{\bar{x}_{diff}}{\sqrt{\frac{s_{diff}^2}{n}}} \\
+  &=\frac{-25.13}{\sqrt{\frac{5.254^2}{100}}} \\
+  &=-47.826 \\
+\end{aligned}
+$$
+where $\bar{x}_{diff}$ is the average of difference between the mobility of Retail & Recreation and the mobility of Grocery & Pharmacies. $s_{diff}$ is the standard deviations of the difference the two groups. $n_{diff}$ is the sample sizes of the difference of two groups.
+
+### Compute the p-value
+```{r}
+2*pt(-abs(tstat1), n1-1)
+```
+The p-value is 3.150334e-70 well below 0.05.
+
+#### Visual Representation
+```{r}
+x <- seq(from=-10, to=10, length=100) #suppose to be -50 to 50 but the graph looks off.
+y <- dt(x, 99)
+gg = ggplot(data.frame(x, y), aes(x = x, y = y)) + geom_line() +
+labs(x = "t",
+y = "Density",
+title = "t-distribution with degrees of freedom 99") +
+theme_classic() +
+theme(plot.title=element_text(size=10),
+axis.title=element_text(size=10),
+legend.title=element_text(size=10))
+gg.data <- ggplot_build(gg)$data
+temp <- gg.data[[1]] %>% filter(x < -tstat1 | x > tstat1)
+gg + geom_area(data = temp, aes(x=x, y=y), fill = "white", alpha = 0.8) + 
+ theme(legend.position="none")
+```
+
+This figure show the t-distribution with 99 degrees of freedom. The area to the left of -47.826 and to the right of 47.826 is approximately zero.
+
+### Interpretation
+Since the p-value is approximately 0, reject the null hypothesis that the mobility of Retail & Recreation is the same as the mobility of Grocery & Pharmacies. There is strong evidence that the mobility of Retail & Recreation is different than the mobility of Grocery & Pharmacies. (Paried t-test, t-stat = -47.826, p-value = 3.15e-70 , df = 99).
+
+
+
+
+## ANOVA Test
+For this test, the parameter is the mean morality rate of the four regions (Midwest, Mortheast, South, West). The research question is: Is there any difference in the mean motality rate of COVID-19 across the four regions of the United States? The null hypothesis is the difference in the mean motality rate of COVID-19 across regions is 0, and the alternative hypothesis is the difference in the mean motality rate of COVID-19 across regions is not 0.
+
+### Hypothesis
+
+$$
+\begin{aligned}
+  H_0: \mu_1=\mu_2=\mu_3=\mu_4  \\
+  H_a: \mu_1 \ne \mu_2 \ne \mu_3 \ne \mu_4 \\
+\end{aligned}
+$$
+
+
+### Check for Assumption
+```{r}
+sd(Northeast$motality) 
+sd(Midwest$motality)  
+sd(South$motality)  
+sd(West$motality)   
+```
+The standard deviations for motatlity are 0.02097143, 0.0242518, 0.02374295, and 0.01720508 for Northeast, Midwest, South, and West respectively.
+```{r}
+ggplot(sample, aes(x=Region,y= motality))+
+  geom_boxplot() +
+  ylab("motality rate")
+ggplot(sample, aes(x= motality , color = Region, fill = Region)) +
+  geom_density(alpha = 0.5) +
+  geom_hline(yintercept=0)  +
+  xlab("motality rate")
+```
+
+Independence is satisfied since the sample is less than 10% of the population, and we assume the subjects in different groups are independent. Normal is also satisfied since the sample sizes are large, and the box plots show no servere skewness. The density plot shows little right skewness, but this can be ignored as the sample size is reasonable. Constant variance is statisfied as the standard deviations are resonably consistent across groups.
+
+### Calculate the Test Statistic and p-value
+```{r}
+fit = lm(motality ~ Region , data = sample)
+anova(fit)
+```
+The test statistic and p-value calculated by lm() and anova() function are F-statistic = 0.9881, p-value = 0.4019 with degree of fredom = 3 and 95.
+
+### Interpretation
+Since the p value is greater than 0.05, we fail to reject the null hypothesis that the difference in the mean motality rate of COVID-19 across regions is 0. Therefore, there is sufficient evidence that the motality rate across regions are similar (p > 0.05, one way analysis of variance, df = 3 and 95, F stats = 0.9881).
+
+
+## X^2 test of independence
+For this test, the research question is: Are the regions and change in mobility rate independent of each other or not? 
+
+### Hypothesis
+$H_0$: regions and change in mobility rate are independent of each other
+$H_a$: regions and change in mobility rate are not independent of each other
+
+### Check for Assumption
+Independence is satisfied since each case is independent of all the other cases in the table; sample size is satisfied because there are at least 5 expected cases in each scenario; lastly, degrees of freedom is satisfied since the degree of freedom is greater than 2.
+
+### Calculate the Test Statistic
+We took an abosulte value of the mobility statistics since we are measuring the change (not specific to increase or decrease). This decision was also made because the X^2 value turned out to be negative when we took the mobility data as they are, and we know negative X^2 value is not possible.
+
+#### Observed 
+```{r}
+chitest = sample %>% 
+  select(Retail...recreation,Grocery...pharmacy, Parks, Transit.stations, Workplaces, Residential, Region) %>% 
+  drop_na() %>% 
+  group_by(Region) %>% 
+  summarize(Retail...recreation = mean(abs(Retail...recreation)), Grocery...pharmacy = mean(abs(Grocery...pharmacy)), Parks = mean(abs(Parks)), Transit.stations = mean(abs(Transit.stations)), Workplaces = mean(abs(Workplaces)), Residential = mean(abs(Residential)))
+
+table2 = matrix(c(51.05882,	24.82353,	61.76471,	43.52941,	38.17647,	11.94118, 57.03448,	32.10345,	41.48276,	59.10345,	41.13793,	14.65517, 48.00000,	22.83333,	34.04167,	38.75000,	38.54167,	12.04167, 49.34483,	24.79310,	20.72414,	45.34483,	39.13793,	13.27586), nrow = 6, ncol = 4)
+colnames(table2) = c("Midwest", "Northeast", "South", "West")
+rownames(table2)= c("Retail&recreation", "Grocery&pharmacy", "Parks", "Transit.stations", "Workplaces", "Residential")
+table2
+```
+
+#### Expected
+```{r}
+
+#calculate expected count
+rtotal = apply(table2, 1, sum)
+ctotal = apply(table2,2,sum)
+ttotal = sum(table2)
+expected = rtotal %o% ctotal / ttotal
+expected
+observed = table2
+x2 = sum((observed - expected)^2 / expected)
+x2
+```
+The X^2 test statistic calculated by $\sum ((observed - expected)^2 / expected)$ is equal to 20.61572.
+
+### Compute the p-value
+```{r}
+dof = (6-1)*(4-1)
+x2p_value = 1-pchisq(x2, dof)
+x2p_value
+```
+The p-value is 0.1495629 which is greater than 0.05.
+
+#### Visual Representation
+```{r}
+gchisq(df = dof) +
+  geom_vline(xintercept = x2, linetype="dotted", color = "red")
+```
+
+The area to the right of the red dotted line under the X^2 curve represents the p-value.
+
+### Interpretation
+Since the p-value is greater than 0.5, we fail to reject the null hypothesis that the regions and change in mobility rate are independent of each other. There is evidence that the regions and change in mobility rate are independent of each other (X^2 independence test, X^2 = 20.61572, p-value =  0.1495629 , df = 15).
+
+## Linear Regression 
+For this test, the research question is: Is there association between motality rate and total mobility change? The null hypothesis is there is no assocation between motality rate and total mobility change, and the alternative hypothesis is there is association between motality rate and total mobility change.
+
+### Hypothesis
+
+$$
+\begin{aligned}
+  H_0: \beta_1 = 0 \\
+  H_a: \beta_1 \ne 0 \\
+\end{aligned}
+$$
+
+### Check for Assumption
+```{r}
+sample2 = sample %>%
+  mutate(mobility_total = Retail...recreation + Grocery...pharmacy + Parks + Transit.stations + Workplaces+Residential) %>% 
+  drop_na()
+
+ggplot(sample2, aes(x = sample2$mobility_total, y = motality)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F) +
+  xlab("Mobility total") +
+  ylab("motality rate of COVID-19")
+
+lm = lm(motality ~ mobility_total, data = sample2)
+par(mfrow=c(2,2))
+plot(lm)
+```
+
+The assumptions for Simple Linear Regression Analysis are linearity, independence, normality, and equal variance. We assume the each observation is independent of the others, so the condition of independence is satisfied. The linearity assumption can be checked by the Residuals vs Fitted plot. There is no obvious fitted pattern via residual plot.The trend line is approximately horizontal at y = 0. Therefore, the linear assumption is satisfied. The normality assumption can be checked using the Normal Q-Q plot. The normal probability plot of residuals approximately follows the line y = x, although there are some points not very close to the line, but overall the trend is around y = x. Therefore, the normality assumption is satisfied. The constant variance assumption can be checked by the Scale-Location plot (bottom-left). There is no obvious fitted pattern via scale-location plot; therefore, the constant variance assumption is statisfied. The sample size is not too small, and linearity, independence, normality, and equal variance assumption are all met, hence a regression analysis is appropriate to use for testing here.
+
+### Check for outlier
+```{r}
+plot(lm, which = 4)
+```
+
+The scatterplot did not show any obvious outlier, but the Residuals vs Leverage plot above show data point 40 have a higher leverage than the other points. The Cook's distance plot is then generated to check for outliers. Although point 40 have a higher Cook's distance than other points, the Cook's distance is below .20 which indicates there are no obvious outliers in the data.
+
+### Calculate the Test Statistic and p-value
+```{r}
+summary(lm)
+```
+The estimated regression line, $\hat{y}$ = $b_0$ + $b_1x$ is motality rate = .03207 + 9.151e-06 (mobility total). The p-value calculated by lm() and summary() function is  0.753  with 96 degrees of freedom.
+
+### Interpretation
+Since the p-value is greater than 0.05, we fail to reject the null hypothesis and say there is sufficient evidence to support the claim that there is little to no association between mortality rate and total mobility change (simple linear regression, p-value = 0.753, df = 96).
+
+
+<hr/>
+
+# III. Discussion
+## i. Restate the objective
+The goal of this research is to analyze mobility change and mortality rates in the midst of the pandemic. The specific topics of interest include the mobility change for essential and nonessential places, how regions differ in mobility change and mortality rates, and whether there is an association between mobility change and mortality rate. 
+
+
+## ii. Summary of Findings
+The first test is aimed at answering the question: How does COVID-19 affect the mobility of Retail & Recreation compared to the mobility of Grocery & Pharmacies of people from more populated counties?  The results of the paired t test provide strong evidence that the mean mobility of Retail & Recreation is different than the mean mobility of Grocery & Pharmacies. Secondly, the ANOVA test is used to test the question: Is there any difference in the mean mortality rate of COVID-19 across the four regions of the United States? The results provide sufficient evidence that the mortality rate across regions are similar. Next, the X^2 test of independence is used to test the question: Are regions and change in mobility independent of each other? The results provide significant evidence that the regions and change in mobility rate are independent of each other. Finally, linear regression is used to test the question: Is there any association between mortality rate and total mobility change? There is sufficient evidence to support the claim that there is little to no association between mortality rate and total mobility change. 
+
+## iii. Error Analysis
+There are a couple errors that could result in biases. One error that could result in bias is inaccurate data due to lack of testing. Not all people who have the virus are tested for it; these people are not counted as positive cases in the data. The result of this could be non-response bias. Secondly, the mobility data is taken from people’s cell phones. Citizens who do not take their cell phone with them when they leave their home will not be accounted for in the mobility measure. This can cause non-response bias since citizens who traveled will not be counted as traveling. Additionally, we were going to use Stay At Home Order as an response variable; however, since there are only 5 samples with NO for Stay At Home Order, we were not able to use it.
+
+
+## iv. Further Studies
+Further studies are required to determine the long-term effects of the pandemic. COVID-19 has only recently affected the United States, so long-term results cannot yet be determined. As a result, the conclusions drawn are not representative of long-term effects. Once the pandemic is over, a study should be conducted analyzing the same variables with the new data.
+
+
+<hr/>
+
+# IV. References
+Cases in U.S. (2020, April 24). Retrieved from https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/cases-in-us.html
+
+COVID-19 Community Mobility Report. (n.d.). Retrieved from https://www.google.com/covid19/mobility/
+
+COVID-19/Coronavirus Live Updates With Credible Sources in US and Canada. (n.d.). Retrieved from https://coronavirus.1point3acres.com/
+
+COVID-19 United States Cases by County. (n.d.). Retrieved from https://coronavirus.jhu.edu/us-map
+
+Mervosh, S., Lu, D., & Swales, V. (2020, March 24). See Which States and Cities Have Told Residents to Stay at Home. Retrieved from https://www.nytimes.com/interactive/2020/us/coronavirus-stay-at-home-order.html
+
+Timing of Community Mitigation and Changes in Reported COVID-19 and Community 
+Mobility ― Four U.S. Metropolitan Areas, February 26–April 1, 2020. (2020, April 16). 
+Retrieved from https://www.cdc.gov/mmwr/volumes/69/wr/mm6915e2.htm
+
+US Census Bureau. (2020, March 26). County Population Totals: 2010-2019. Retrieved from https://www.census.gov/data/datasets/time-series/demo/popest/2010s-counties-total.html
+
+What Is Coronavirus? (n.d.). Retrieved from https://www.hopkinsmedicine.org/health/conditions-and-diseases/coronavirus
+
+
