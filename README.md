@@ -16,7 +16,7 @@ These questions will help the audience understand whether there is a difference 
 
 ## Dependencies
 * R/RStudio
-* Libraries: dplyr, ggplot2, tidyr, broom, and reshape2.
+* Libraries: dplyr, ggplot2, tidyr, broom, and reshape2
 
 
 ## Authors
